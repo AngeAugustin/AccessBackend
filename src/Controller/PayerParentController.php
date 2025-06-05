@@ -23,6 +23,7 @@ class PayerParentController extends AbstractController
         }
 
         $Id_paiement = $data['Id_paiement'];
+        $Id_transaction = $data['Id_transaction'];
         $Paiement = $data['Paiement'];
         $NPI_payeur = $data['NPI_payeur'];
         $Nom_payeur = $data['Nom_payeur'];
@@ -63,6 +64,7 @@ class PayerParentController extends AbstractController
         // Création enregistrement PaiementParent
         $paiementParent = new PaiementParent();
         $paiementParent->setIdPaiement($Paiement);
+        $paiementParent->setIdTransaction($Id_transaction);
         $paiementParent->setNPIPayeur($NPI_payeur);
         $paiementParent->setNomPayeur($Nom_payeur);
         $paiementParent->setPrenomPayeur($Prenom_payeur);
