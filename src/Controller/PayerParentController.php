@@ -18,7 +18,7 @@ class PayerParentController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         if (!$data
-            || !isset($data['Id_paiement'], $data['Paiement'], $data['NPI_payeur'], $data['Nom_payeur'], $data['Prenom_payeur'], $data['Role_payeur'], $data['Montant_paiement'])) {
+            || !isset($data['Id_paiement'],$data['Id_transaction'], $data['Paiement'], $data['NPI_payeur'], $data['Nom_payeur'], $data['Prenom_payeur'], $data['Role_payeur'], $data['Montant_paiement'])) {
             return new JsonResponse(['message' => 'Données manquantes ou invalides'], 400);
         }
 
@@ -27,6 +27,7 @@ class PayerParentController extends AbstractController
         $Paiement = $data['Paiement'];
         $NPI_payeur = $data['NPI_payeur'];
         $Nom_payeur = $data['Nom_payeur'];
+        $Email_payeur = $data['Email_payeur'];
         $Prenom_payeur = $data['Prenom_payeur'];
         $Role_payeur = $data['Role_payeur'];
         $Montant_paiement = $data['Montant_paiement'];
@@ -69,6 +70,7 @@ class PayerParentController extends AbstractController
         $paiementParent->setNomPayeur($Nom_payeur);
         $paiementParent->setPrenomPayeur($Prenom_payeur);
         $paiementParent->setRolePayeur($Role_payeur);
+        $paiementParent->setEmailPayeur($Email_payeur);
         $paiementParent->setStatutPaiement('Effectué');
         $paiementParent->setDatePaiement($today->format('Y-m-d'));
         $paiementParent->setMontantPaiement($Montant_paiement);
@@ -77,5 +79,79 @@ class PayerParentController extends AbstractController
         $entityManager->flush();
 
         return new JsonResponse(['message' => 'Paiement parent enregistré avec succès']);
+    }
+
+
+    # Route pour créer une transaction avec FedaPay
+    #[Route('/api/initier_transaction', name: 'initier_transaction', methods: ['POST'])]
+    public function initierTransaction(Request $request): JsonResponse
+    {
+        // Configure FedaPay
+        \FedaPay\FedaPay::setAccountId('acc_4847441598');
+        \FedaPay\FedaPay::setApiKey('pk_sandbox_DhKTKbhyY1s7p7ewvKEZdc1T');
+        \FedaPay\FedaPay::setEnvironment('sandbox');
+
+        $data = json_decode($request->getContent(), true);
+
+        if (!$data
+            || !isset($data['Id_paiement'],$data['Id_transaction'], $data['Paiement'], $data['NPI_payeur'], $data['Nom_payeur'], $data['Prenom_payeur'], $data['Role_payeur'], $data['Montant_paiement'])) {
+            return new JsonResponse(['message' => 'Données manquantes ou invalides'], 400);
+        }
+
+        $Id_paiement = $data['Id_paiement'];
+        $Id_transaction = $data['Id_transaction'];
+        $Paiement = $data['Paiement'];
+        $NPI_payeur = $data['NPI_payeur'];
+        $Email_payeur = $data['Email_payeur'];
+        $Nom_payeur = $data['Nom_payeur'];
+        $Prenom_payeur = $data['Prenom_payeur'];
+        $Role_payeur = $data['Role_payeur'];
+        $Montant_paiement = $data['Montant_paiement'];
+
+        try {
+            $transaction = \FedaPay\Transaction::create([
+                "description" => "Paiement de " . $Prenom_payeur . " " . $Nom_payeur,
+                "amount" => $Montant_paiement,
+                "currency" => ["iso" => "XOF"],
+                "custom_metadata" => [
+                    "Id_paiement" => $Id_paiement,
+                    "Id_transaction" => $Id_transaction,
+                    "NPI_payeur" => $NPI_payeur,
+                    "Role_payeur" => $Role_payeur,
+                    "Email_payeur" => $Email_payeur,
+                    "Paiement" => $Paiement,
+                    "Nom_payeur" => $Nom_payeur,
+                    "Prenom_payeur" => $Prenom_payeur,
+                    "Montant_paiement" => $Montant_paiement,
+                ],
+                "callback_url" => getenv('APP_URL'),
+                "customer" => [
+                    "firstname" => $Prenom_payeur,
+                    "lastname" => $Nom_payeur,
+                    "email" => $Email_payeur
+                ]
+            ]);
+
+            // Retourner le token généré pour finaliser le paiement
+            return new JsonResponse([
+                'status' => 'success',
+                'data' => $transaction->generateToken()
+            ]);
+        } catch (\Exception $ex) {
+            // Gestion des erreurs FedaPay
+            $message = "Une erreur est survenue.";
+
+            // Vous pouvez personnaliser la gestion des erreurs ici selon le type d'exception
+            if (strpos($ex->getMessage(), 'phone') !== false) {
+                $message = "Le numéro de téléphone est invalide. ";
+            }
+
+            $message .= $ex->getMessage();
+
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $message
+            ], 500);
+        }
     }
 }
