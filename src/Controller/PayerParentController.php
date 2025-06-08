@@ -94,12 +94,11 @@ class PayerParentController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         if (!$data
-            || !isset($data['Id_paiement'],$data['Id_transaction'], $data['Paiement'], $data['NPI_payeur'], $data['Nom_payeur'], $data['Prenom_payeur'], $data['Role_payeur'], $data['Montant_paiement'])) {
+            || !isset($data['Id_paiement'], $data['Paiement'], $data['NPI_payeur'], $data['Nom_payeur'], $data['Prenom_payeur'], $data['Role_payeur'], $data['Montant_paiement'])) {
             return new JsonResponse(['message' => 'Données manquantes ou invalides'], 400);
         }
 
         $Id_paiement = $data['Id_paiement'];
-        $Id_transaction = $data['Id_transaction'];
         $Paiement = $data['Paiement'];
         $NPI_payeur = $data['NPI_payeur'];
         $Email_payeur = $data['Email_payeur'];
@@ -115,7 +114,6 @@ class PayerParentController extends AbstractController
                 "currency" => ["iso" => "XOF"],
                 "custom_metadata" => [
                     "Id_paiement" => $Id_paiement,
-                    "Id_transaction" => $Id_transaction,
                     "NPI_payeur" => $NPI_payeur,
                     "Role_payeur" => $Role_payeur,
                     "Email_payeur" => $Email_payeur,
