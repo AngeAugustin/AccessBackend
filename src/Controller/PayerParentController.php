@@ -122,7 +122,7 @@ class PayerParentController extends AbstractController
                     "Prenom_payeur" => $Prenom_payeur,
                     "Montant_paiement" => $Montant_paiement,
                 ],
-                "callback_url" => getenv('APP_URL'),
+                "callback_url" => getenv('https://access-admin.vercel.app/resultpay/'),
                 "customer" => [
                     "firstname" => $Prenom_payeur,
                     "lastname" => $Nom_payeur,
@@ -131,7 +131,7 @@ class PayerParentController extends AbstractController
             ]);
 
             // Retourner le token généré pour finaliser le paiement
-            return new JsonResponse([
+            return new JsonResponse([ 
                 'status' => 'success',
                 'data' => $transaction->generateToken()
             ]);
