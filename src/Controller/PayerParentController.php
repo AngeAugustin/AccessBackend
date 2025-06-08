@@ -88,7 +88,7 @@ class PayerParentController extends AbstractController
     {
         // Configure FedaPay
         \FedaPay\FedaPay::setAccountId('acc_4847441598');
-        \FedaPay\FedaPay::setApiKey('pk_sandbox_DhKTKbhyY1s7p7ewvKEZdc1T');
+        \FedaPay\FedaPay::setApiKey('sk_sandbox_0SPLKw_Fy0feqqINjHUqB_DI');
         \FedaPay\FedaPay::setEnvironment('sandbox');
 
         $data = json_decode($request->getContent(), true);
